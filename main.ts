@@ -35,6 +35,7 @@ const HTML = `<!DOCTYPE html>
     color: #a78bfa;
   }
   #hud span { font-size: 1.5rem; color: #fff; font-weight: bold; }
+  #hud .high-score span { color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.35); }
   #stage {
     position: relative;
     width: 480px;
@@ -196,6 +197,7 @@ const HTML = `<!DOCTYPE html>
   <div>SCORE <span id="scoreVal">0</span></div>
   <div>COMBO <span id="comboVal">0</span></div>
   <div>PERFECT <span id="perfectVal">0</span></div>
+  <div class="high-score">HIGH SCORE <span id="highScoreVal">0</span></div>
 </div>
 <div id="stage">
   <div class="lane-bg"></div>
@@ -263,6 +265,7 @@ let score = 0;
 let combo = 0;
 let perfect = 0;
 let miss = 0;
+let highScore = Number(localStorage.getItem('rhythmfun-high-score')) || 0;
 let activeNotes = []; // {el, lane, hitTime}
 let spawnIndex = 0;
 let raf = null;
@@ -274,9 +277,12 @@ const startBtn = document.getElementById('startBtn');
 const scoreVal = document.getElementById('scoreVal');
 const comboVal = document.getElementById('comboVal');
 const perfectVal = document.getElementById('perfectVal');
+const highScoreVal = document.getElementById('highScoreVal');
 const judgment = document.getElementById('judgment');
 const comboEl = document.getElementById('combo');
 const progressFill = document.getElementById('progressfill');
+
+highScoreVal.textContent = highScore.toLocaleString();
 
 function spawnNote(lane, hitTime) {
   const el = document.createElement('div');
@@ -437,10 +443,17 @@ function endGame() {
   const total = perfect + miss + (activeNotes.length);
   const acc = total > 0 ? Math.round(perfect / total * 100) : 0;
   let grade = acc >= 95 ? 'S' : acc >= 85 ? 'A' : acc >= 70 ? 'B' : acc >= 50 ? 'C' : 'D';
+  const isNewHighScore = score > highScore;
+  if (isNewHighScore) {
+    highScore = score;
+    localStorage.setItem('rhythmfun-high-score', String(highScore));
+    highScoreVal.textContent = highScore.toLocaleString();
+  }
   overlay.innerHTML = \`
     <h2>🎉 RESULT</h2>
     <div class="result">Grade: <b style="font-size:2rem;color:#fbbf24">\${grade}</b></div>
     <div class="result">Score: \${score.toLocaleString()}</div>
+    <div class="result" style="color:#fbbf24">\${isNewHighScore ? '★ NEW HIGH SCORE! ★' : 'High Score: ' + highScore.toLocaleString()}</div>
     <div class="result">Perfect: \${perfect} &nbsp; Miss: \${miss} &nbsp; Accuracy: \${acc}%</div>
     <button class="start-btn" id="startBtn">PLAY AGAIN</button>
   \`;
